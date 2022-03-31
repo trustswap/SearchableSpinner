@@ -18,6 +18,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.SearchView;
 
+import androidx.annotation.LayoutRes;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -25,6 +27,7 @@ public class SearchableListDialog extends DialogFragment implements
         SearchView.OnQueryTextListener, SearchView.OnCloseListener {
 
     private static final String ITEMS = "items";
+    private static final String DIALOG_LAYOUT = "layout";
 
     private ArrayAdapter listAdapter;
 
@@ -40,18 +43,22 @@ public class SearchableListDialog extends DialogFragment implements
 
     private String _strPositiveButtonText;
 
+    private int _dialogLayout;
+
     private DialogInterface.OnClickListener _onClickListener;
 
     public SearchableListDialog() {
 
     }
 
-    public static SearchableListDialog newInstance(List items) {
+    public static SearchableListDialog newInstance(List items, @LayoutRes int customDialogLayout) {
         SearchableListDialog multiSelectExpandableFragment = new
                 SearchableListDialog();
 
         Bundle args = new Bundle();
         args.putSerializable(ITEMS, (Serializable) items);
+        if (customDialogLayout != 0)
+            args.putInt(DIALOG_LAYOUT, customDialogLayout);
 
         multiSelectExpandableFragment.setArguments(args);
 
@@ -84,13 +91,18 @@ public class SearchableListDialog extends DialogFragment implements
         // getting the instance from the saved instance
         if (null != savedInstanceState) {
             _searchableItem = (SearchableItem) savedInstanceState.getSerializable("item");
+            _dialogLayout = savedInstanceState.getInt(DIALOG_LAYOUT);
         }
         // Change End
+        View rootView;
+        if (_dialogLayout != 0)
+            rootView = inflater.inflate(_dialogLayout, null);
+        else
+            rootView = inflater.inflate(R.layout.searchable_list_dialog, null);
 
-        View rootView = inflater.inflate(R.layout.searchable_list_dialog, null);
         setData(rootView);
 
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity(), R.style.AlertDialogStyle);
         alertDialog.setView(rootView);
 
         String strPositiveButton = _strPositiveButtonText == null ? "CLOSE" : _strPositiveButtonText;
